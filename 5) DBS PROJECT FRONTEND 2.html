@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Event Booking Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6p5R7PDVlDB66K4OcO1lMuO5CCBgeOZf2mw&s">
+<style>
+:root {
+  --primary: #00bcd4;
+  --accent: #ff4081;
+  --bg-dark: #181c24;
+  --bg-darker: #14171d;
+  --text-light: #f5f6fa;
+  --text-muted: #b0b8c1;
+  --shadow: rgba(0,0,0,0.7);
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-light);
+}
+header.header-company {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  text-align: center;
+  font-size: 3.2rem;
+  font-weight: 900;
+  padding: 2.5rem 1rem 2rem 1rem;
+  letter-spacing: 0.18em;
+  color: var(--bg-darker);
+  text-shadow: 0 0 15px rgba(255 255 255 / 0.4);
+  margin-bottom: 0;
+}
+nav {
+  background: var(--bg-darker);
+  box-shadow: 0 3px 14px var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  height: 90px;
+  align-items: center;
+}
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 3.2rem;
+  margin: 0; padding: 0 2.5rem;
+  align-items: center;
+  height: 100%;
+}
+nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.5rem;
+  padding: 2rem 0;
+  position: relative;
+  transition: color 0.3s;
+  letter-spacing: 0.05em;
+}
+nav a.active,
+nav a:hover { color: var(--primary);}
+nav a.active::after,
+nav a:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; width: 100%; height: 4px;
+  background: var(--primary);
+  border-radius: 2px 2px 0 0;
+}
+main {
+  max-width: 1200px;
+  margin: 2.5rem auto 5rem;
+  padding: 0 1.5rem;
+}
+section.page {
+  display: none;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+section.page.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+#events-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.2rem;
+  margin-top: 2rem;
+}
+@media (max-width: 1000px) {
+  #events-container { grid-template-columns: repeat(2, 1fr);}
+}
+@media (max-width: 700px) {
+  #events-container { grid-template-columns: 1fr;}
+}
+.event-card {
+  background: var(--bg-darker);
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 3px 15px rgba(0,188,212,0.12);
+  max-width: 380px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: var(--text-light);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+.event-card:hover {
+  box-shadow: 0 0 40px var(--primary);
+  transform: translateY(-8px);
+}
+.event-card h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.event-card p {
+  margin: 0.2rem 0;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+.register-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  margin-top: 1rem;
+  font-size: 1.07rem;
+  font-weight: 700;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 3px 12px rgba(255,64,129,0.12);
+}
+.register-btn:hover {
+  background: var(--primary);
+  color: var(--bg-darker);
+  transform: translateY(-2px);
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-darker);
+  padding: 0.5rem 6.5rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.28);
+  z-index: 1000;
+  min-width: 700px;
+  max-width: 95vw;
+  min-height: 0;
+}
+.modal.active { display: block; }
+.modal h3 {
+  font-size: 1.7rem;
+  color: var(--primary);
+  margin: 1rem 0 0.2rem 0;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+#registrationForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 1.2rem;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+#registrationForm label {
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: 0.1rem;
+  margin-top: 0.2rem;
+}
+#registrationForm input, #registrationForm select {
+  font-size: 1rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 7px;
+  border: 1px solid #333;
+  background: #23272f;
+  color: var(--text-light);
+  margin-bottom: 0.1rem;
+}
+#registrationForm button {
+  grid-column: span 2;
+  margin-top: 0.6rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.7rem 2rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+#seatSelection {
+  grid-column: span 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0.5rem 0 0.2rem 0;
+  justify-content: flex-start;
+}
+.seat {
+  width: 28px; height: 28px;
+  background: #23272f;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: bold;
+  transition: background 0.2s, border-color 0.2s;
+}
+.seat.booked {
+  background: #f8d7da;
+  border-color: var(--accent);
+  color: #b71c1c;
+  cursor: not-allowed;
+}
+.seat.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.close-modal-btn {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  font-size: 2.1rem;
+  color: var(--accent);
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s;
+}
+.close-modal-btn:hover {
+  color: var(--primary);
+}
+#addPhoneBtn, .remove-phone-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  padding: 0.2rem 0.8rem;
+  font-size: 1rem;
+  margin-left: 0.4rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.remove-phone-btn {
+  background: var(--accent);
+  margin-left: 0.2rem;
+}
+#addPhoneBtn:hover { background: var(--accent);}
+.remove-phone-btn:hover { background: #c62828;}
+#paymentStepModal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-darker);
+  padding: 2.2rem 2.2rem 1.5rem 2.2rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.28);
+  z-index: 2000;
+  min-width: 340px;
+  max-width: 96vw;
+  color: var(--text-light);
+}
+#paymentStepModal.active { display: block; }
+#paymentStepModal label {
+  display:block;
+  margin: 0.5rem 0 0.1rem 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+#paymentStepModal select, #paymentStepModal input[type="date"] {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #23272f;
+  color: var(--text-light);
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+}
+#paymentStepModal button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.7rem 2rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 0.3rem;
+}
+#paymentStepModal button:hover {
+  background: var(--primary);
+}
+#paymentPageOverlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+#paymentPageOverlay.active { display: flex; }
+.ticket-card {
+  background: linear-gradient(135deg, #23272f 60%, var(--primary) 100%);
+  color: var(--text-light);
+  border-radius: 20px;
+  box-shadow: 0 0 40px var(--primary);
+  padding: 2.2rem 2.2rem 1.5rem 2.2rem;
+  max-width: 420px;
+  margin: 2rem auto;
+  text-align: left;
+  border: 3px dashed var(--accent);
+  position: relative;
+  font-size: 1.13rem;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.7s;
+}
+.ticket-card h3 {
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.ticket-card p {
+  margin: 0.3rem 0;
+  color: var(--text-light);
+  font-size: 1.09rem;
+}
+.ticket-card .ticket-id {
+  position: absolute;
+  top: 1.2rem;
+  right: 2rem;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.ticket-card .ticket-event {
+  font-size: 1.25rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.ticket-card .ticket-footer {
+  margin-top: 1.5rem;
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .modal { min-width: 98vw; padding: 0.5rem 0.5rem;}
+  #registrationForm { grid-template-columns: 1fr;}
+  #events-container { grid-template-columns: repeat(2, 1fr);}
+}
+@media (max-width: 700px) {
+  #events-container { grid-template-columns: 1fr;}
+}
+.team-grid {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.member {
+  background: #23272f;
+  border-radius: 12px;
+  padding: 1.2rem 1.8rem;
+  flex: 1 1 180px;
+  box-shadow: 0 0 15px var(--primary);
+  margin: 0.5rem;
+  text-align: center;
+}
+.member h3 {
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.member p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+footer {
+  margin-top: 2rem;
+  border-top: 1px solid #444;
+  padding-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+#feedbackForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#feedbackForm input, #feedbackForm textarea, #feedbackForm select {
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  padding: 0.6rem 1rem;
+  background: #23272f;
+  color: var(--text-light);
+  resize: vertical;
+}
+#feedbackForm button {
+  background: var(--primary);
+  border: none;
+  padding: 0.7rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 30px;
+  color: var(--bg-darker);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+#feedbackForm button:hover {
+  background: var(--accent);
+}
+#feedbackMsg {
+  margin-top: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<header class="header-company">Event Booking Hub</header>
+<nav>
+  <ul>
+    <li><a href="#upcoming" class="active">Upcoming Events</a></li>
+    <li><a href="#feedback">Feedback</a></li>
+    <li><a href="#about">About Us</a></li>
+  </ul>
+</nav>
+<main>
+  <section id="upcoming" class="page active">
+    <div id="events-container"></div>
+  </section>
+  <section id="feedback" class="page">
+    <div class="event-card" style="max-width:420px; margin:2rem auto;">
+      <h2>Event Feedback</h2>
+      <form id="feedbackForm">
+        <label for="personId">Person ID</label>
+        <input type="number" id="personId" name="personId" min="6" placeholder="Your Person ID" required />
+        <label for="eventId">Event ID</label>
+        <input type="number" id="eventId" name="eventId" min="1" max="100" placeholder="Event ID" required />
+        <label for="email">Registered Email</label>
+        <input type="email" id="email" name="email" placeholder="Registered Email" required />
+        <label for="rating">How was the event?</label>
+        <select id="rating" name="rating" required>
+          <option value="" disabled selected>Select rating</option>
+          <option value="5">Excellent</option>
+          <option value="4">Good</option>
+          <option value="3">Average</option>
+          <option value="2">Poor</option>
+          <option value="1">Very Poor</option>
+        </select>
+        <label for="comments">Any Comments??</label>
+        <textarea id="comments" name="comments" rows="3" required></textarea>
+        <button type="submit">Submit Feedback</button>
+      </form>
+      <div id="feedbackMsg" role="alert" aria-live="polite"></div>
+    </div>
+  </section>
+
+ <section id="about" class="page">
+  <div class="event-card" style="max-width:700px;">
+    <h2>About Our Team</h2>
+    <ul style="margin-bottom:1.5rem;list-style:disc inside;color:var(--primary);font-size:1.08rem;">
+      <li>We offer instant ticket generation and secure online payments for all events.</li>
+      <li>Our platform provides real-time seat selection and live event updates.</li>
+      <li>24/7 customer support ensures a smooth and reliable booking experience.</li>
+      <li>Easy feedback and event management tools for both organizers and attendees.</li>
+    </ul>
+    <div class="team-grid">
+      <div class="member">
+        <h3>Qamar u Zaman</h3>
+        <p>Lead Developer</p>
+        <p><strong>Email:</strong> personal@email.com</p>
+        <p><strong>Contact:</strong> +92 300 123123123</p>
+      </div>
+      <div class="member">
+        <h3>Muhammad Farhan</h3>
+        <p>UI/UX Designer</p>
+        <p><strong>Email:</strong> personal@email.com</p>
+        <p><strong>Contact:</strong> +92 300 456456456</p>
+      </div>
+      <div class="member">
+        <h3>Syed Qumber Ali Naqvi</p>
+        <p>Project Manager</p>
+        <p><strong>Email:</strong> personal@email.com</p>
+        <p><strong>Contact:</strong> +92 300 789789789</p>
+      </div>
+    </div>
+    <footer>
+      <p>📍 Location: Institute Of Space Technology,Islamabad </p>
+      <p>✉ Email: contact@eventbookinghub.com | 📞 Phone: +92 123456789</p>
+      <p>&copy; 2025 Event Booking Hub. All rights reserved.</p>
+    </footer>
+  </div>
+</section>
+</main>
+
+
+<!-- Registration Modal -->
+<div id="registrationModal" class="modal">
+  <button class="close-modal-btn" type="button" aria-label="Close Registration Form" onclick="closeModal()">&times;</button>
+  <h3>Event Registration</h3>
+  <form id="registrationForm">
+    <label for="personIdReg">Person ID</label>
+    <input type="text" id="personIdReg" name="personId" readonly style="background:#23272f;color:#aaa;" />
+    <label for="eventIdReg">Event ID</label>
+    <input type="text" id="eventIdReg" name="eventId" readonly style="background:#23272f;color:#aaa;" />
+    <label for="regName">Full Name</label>
+    <input type="text" id="regName" name="name" placeholder="Full Name" required />
+    <label for="regGender">Gender</label>
+    <select id="regGender" name="gender" required>
+      <option value="" disabled selected>Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+    <label>Phone Numbers <span style="color:var(--text-muted);font-size:0.95em;">(At least 1, up to 3)</span></label>
+    <div id="phoneNumbersGroup" style="grid-column:span 2;display:flex;flex-direction:column;gap:0.2rem;"></div>
+    <button type="button" id="addPhoneBtn">+ Add Phone</button>
+    <label for="regEmail">Email</label>
+    <input type="email" id="regEmail" name="email" placeholder="Email" required />
+    <label for="regTicketType">Ticket Type</label>
+    <select id="regTicketType" name="ticketType" required>
+      <option value="" disabled selected>Select Ticket Type</option>
+      <option value="Regular">Regular</option>
+      <option value="VIP">VIP</option>
+      <option value="Team Member">Team Member</option>
+      <option value="Student">Student</option>
+    </select>
+    <label>Choose Seat(s)</label>
+    <div id="seatSelection"></div>
+    <button type="submit">Confirm Payment</button>
+  </form>
+</div>
+
+<!-- Payment Step Modal -->
+<div id="paymentStepModal">
+  <form id="paymentStepForm">
+    <label for="paymentMethod">Payment Method</label>
+    <select id="paymentMethod" name="paymentMethod" required>
+      <option value="" disabled selected>Select payment method</option>
+      <option value="Online Payment">Online Payment</option>
+      <option value="Cash">Cash</option>
+      <option value="Credit Card">Credit Card</option>
+    </select>
+    <label for="paymentDate">Payment Date</label>
+    <input type="date" id="paymentDate" name="paymentDate" required />
+    <button type="submit">Click here to get Ticket</button>
+  </form>
+</div>
+
+<!-- Payment Page Overlay (Ticket) -->
+<div id="paymentPageOverlay">
+  <div id="paymentContent"></div>
+  <button id="closePaymentBtn" aria-label="Close Payment Page">Go Back</button>
+</div>
+
+
+<script>
+// Event/organizer/sponsor/venue names
+const eventNames = [
+  "MUSIC FESTIVAL", "BOOK FAIR", "PET SHOW", "CAR SHOW", "FOOD FEST", "TECH EXPO", "MOVIE NIGHT", "CONCERT", "CULTURAL DAY", 
+  "AI SEMINAR", "FASHION SHOW", "CIRCUS SHOW", "ART FESTIVAL", "SCIENCE FAIR", "DRAMA NIGHT"
+];
+
+const organizerNames = [
+  "ALPHA EVNETS", "EVENT MASTER", "CITY EVENTS", "FEST PRO", "EXPERT TEAM", "SIGMA COP", "PLANNER TNT", "PRO_TEAM", "ELITE ORG", "SPECX PRO"
+];
+
+const sponsorNames = [
+  "BRAVO LTD", "ECHO PARTNERS", "HOTEL INCOP", "BEST TRADERS", "FOODIES LTD", "SPARKE VAGUE", "MICROSOFT", "TRAINEES ORG", "INSIGHTINGS", "KICKERS LTD"
+];
+
+const venueNames = [
+  "CENTRAL GROUND", "CITY LIBRARY", "PET GARDENS", "FIVE HOSTEL", "FOOD STREET", "IT AUDITORIUM", "OPEN THEATRE", "MAIN GROUND", "CONFERENCE HALL", "CITY HALL", "GRAND ARENA", "ART COMPLEX", "EXHIBITION CENTER", "OPEN THEATER"
+];
+
+// Generate events array with valid template strings
+const events = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  name: eventNames[i],
+  organizer: organizerNames[i],
+  organizerContact: `+92300${String(1000000 + i * 11111).slice(0, 7)}`,
+  sponsor: sponsorNames[i],
+  sponsorContact: `+92301${String(2000000 + i * 22222).slice(0, 7)}`,
+  venue: venueNames[i],
+  time: `2025-07-${String(i + 1).padStart(2, '0')} ${10 + (i % 12)}:00`
+}));
+
+let personId = 6;
+let registeredEmails = [
+  "user1@email.com","user2@email.com","user3@email.com","user4@email.com","user5@email.com"
+];
+
+// Initialize seat state for each event
+const seatState = {};
+events.forEach(event => {
+  seatState[event.id] = {};
+  for (let i = 1; i <= 50; i++) seatState[event.id][i] = false;
+});
+
+// Render all events
+function renderEvents() {
+  const container = document.getElementById('events-container');
+  container.innerHTML = events.map(event => `
+    <div class="event-card">
+      <h2>${event.name}</h2>
+      <p><strong>Organizer:</strong> ${event.organizer} (<a href="tel:${event.organizerContact}" style="color:var(--primary);">${event.organizerContact}</a>)</p>
+      <p><strong>Sponsor:</strong> ${event.sponsor} (<a href="tel:${event.sponsorContact}" style="color:var(--primary);">${event.sponsorContact}</a>)</p>
+      <p><strong>Venue:</strong> ${event.venue}</p>
+      <p><strong>Time:</strong> ${new Date(event.time).toLocaleString()}</p>
+      <button class="register-btn" data-event="${event.id}">Register Now</button>
+    </div>
+  `).join('');
+}
+renderEvents();
+
+// Navigation menu behavior
+const navLinks = document.querySelectorAll('nav a');
+const pages = document.querySelectorAll('.page');
+navLinks.forEach((link, idx) => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    navLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    pages.forEach(p => p.classList.remove('active'));
+    pages[idx].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// Registration modal logic
+const modal = document.getElementById('registrationModal');
+const registrationForm = document.getElementById('registrationForm');
+const seatSelectionDiv = document.getElementById('seatSelection');
+let currentEventId = null;
+let selectedSeats = new Set();
+
+document.body.addEventListener('click', e => {
+  if (e.target.classList.contains('register-btn')) {
+    currentEventId = parseInt(e.target.dataset.event);
+    modal.classList.add('active');
+    registrationForm.reset();
+    selectedSeats.clear();
+    renderSeatSelection(currentEventId);
+    document.getElementById('personIdReg').value = personId;
+    document.getElementById('eventIdReg').value = currentEventId;
+    document.getElementById('regName').focus();
+    setupPhoneFields();
+    closePaymentPage();
+  }
+});
+function closeModal() { modal.classList.remove('active'); }
+
+function renderSeatSelection(eventId) {
+  const seats = seatState[eventId];
+  seatSelectionDiv.innerHTML = '';
+  Object.entries(seats).forEach(([seatNum, booked]) => {
+    const seat = document.createElement('div');
+    seat.className = 'seat' + (booked ? ' booked' : '');
+    seat.textContent = seatNum;
+    if (!booked) {
+      seat.tabIndex = 0;
+      seat.addEventListener('click', () => toggleSeat(seatNum));
+      seat.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          toggleSeat(seatNum);
+        }
+      });
+    }
+    seatSelectionDiv.appendChild(seat);
+  });
+}
+
+function toggleSeat(seatNum) {
+  const seatStr = seatNum.toString();
+  if (selectedSeats.has(seatStr)) selectedSeats.delete(seatStr);
+  else selectedSeats.add(seatStr);
+  Array.from(seatSelectionDiv.children).forEach(child => {
+    child.classList.toggle('selected', selectedSeats.has(child.textContent));
+  });
+}
+
+// Phone number fields (min 1, max 3)
+function setupPhoneFields() {
+  const phoneGroup = document.getElementById('phoneNumbersGroup');
+  phoneGroup.innerHTML = '';
+  addPhoneField(phoneGroup);
+}
+
+function addPhoneField(phoneGroup, value = '') {
+  if (phoneGroup.children.length >= 3) return;
+  const idx = phoneGroup.children.length + 1;
+  const input = document.createElement('input');
+  input.type = 'tel';
+  input.name = 'phoneNumbers';
+  input.placeholder = `Phone Number ${idx}`;
+  input.required = idx === 1;
+  input.value = value;
+  input.style = "margin-bottom:0.2rem;";
+
+  const wrapper = document.createElement('div');
+  wrapper.style = "display:flex;align-items:center;";
+  wrapper.appendChild(input);
+
+  if (idx > 1) {
+    const removeBtn = document.createElement('button');
+    removeBtn.type = "button";
+    removeBtn.className = "remove-phone-btn";
+    removeBtn.textContent = "×";
+    removeBtn.onclick = () => phoneGroup.removeChild(wrapper);
+    wrapper.appendChild(removeBtn);
+  }
+
+  phoneGroup.appendChild(wrapper);
+}
+
+document.getElementById('addPhoneBtn').onclick = () => {
+  const phoneGroup = document.getElementById('phoneNumbersGroup');
+  if (phoneGroup.children.length < 3) {
+    addPhoneField(phoneGroup);
+  }
+};
+
+// Registration form logic
+let pendingRegData = null;
+registrationForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const formData = new FormData(registrationForm);
+  const name = formData.get('name').trim();
+  const gender = formData.get('gender');
+  const email = formData.get('email').trim();
+  const ticketType = formData.get('ticketType');
+  const pId = personId;
+  const eId = currentEventId;
+  const phoneInputs = Array.from(document.querySelectorAll('#phoneNumbersGroup input[name="phoneNumbers"]'));
+  const phoneNumbers = phoneInputs.map(inp => inp.value.trim()).filter(Boolean);
+
+  if (!name || !gender || !email || !ticketType) {
+    alert('Please fill all fields.');
+    return;
+  }
+  if (phoneNumbers.length < 1) {
+    alert('Please enter at least 1 phone number.');
+    return;
+  }
+  if (phoneNumbers.length > 3) {
+    alert('You can enter a maximum of 3 phone numbers.');
+    return;
+  }
+  if (selectedSeats.size === 0) {
+    alert('Please select at least one seat.');
+    return;
+  }
+  // Prevent double-booking
+  for (let seat of selectedSeats) {
+    if (seatState[currentEventId][seat]) {
+      alert(`Seat ${seat} is already booked. Please select different seats.`);
+      renderSeatSelection(currentEventId);
+      selectedSeats.clear();
+      return;
+    }
+  }
+
+  pendingRegData = {
+    name, gender, phoneNumbers, email, ticketType,
+    seats: Array.from(selectedSeats),
+    personId: pId,
+    eventId: eId
+  };
+  modal.classList.remove('active');
+  openPaymentStepModal();
+});
+
+// Payment step
+const paymentStepModal = document.getElementById('paymentStepModal');
+const paymentStepForm = document.getElementById('paymentStepForm');
+function openPaymentStepModal() {
+  paymentStepModal.classList.add('active');
+  document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 10);
+}
+paymentStepForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const paymentMethod = document.getElementById('paymentMethod').value;
+  const paymentDate = document.getElementById('paymentDate').value;
+  if (!paymentMethod || !paymentDate) {
+    alert('Please select payment method and date.');
+    return;
+  }
+  pendingRegData.paymentMethod = paymentMethod;
+  pendingRegData.paymentDate = paymentDate;
+  paymentStepModal.classList.remove('active');
+  openPaymentPage(pendingRegData);
+});
+
+// Payment and ticket display
+const paymentPageOverlay = document.getElementById('paymentPageOverlay');
+const paymentContent = document.getElementById('paymentContent');
+const closePaymentBtn = document.getElementById('closePaymentBtn');
+
+function openPaymentPage(regData) {
+  let pricePerSeat = 0;
+  switch (regData.ticketType) {
+    case 'VIP': pricePerSeat = 1300; break;
+    case 'Regular': pricePerSeat = 700; break;
+    case 'Student': pricePerSeat = 500; break;
+  }
+  const totalPrice = pricePerSeat * regData.seats.length;
+  regData.seats.forEach(seat => seatState[regData.eventId][seat] = true);
+  personId++;
+  renderEvents();
+
+  paymentContent.innerHTML = `
+    <div class="ticket-card" id="ticketCardPreview">
+      <div class="ticket-id">Person ID: ${regData.personId} | Event ID: ${regData.eventId}</div>
+      <div class="ticket-event">${events[regData.eventId - 1].name}</div>
+      <h3>Ticket Details</h3>
+      <p><b>Name:</b> ${regData.name}</p>
+      <p><b>Email:</b> ${regData.email}</p>
+      <p><b>Phone(s):</b> ${regData.phoneNumbers.join(', ')}</p>
+      <p><b>Gender:</b> ${regData.gender}</p>
+      <p><b>Ticket Type:</b> ${regData.ticketType}</p>
+      <p><b>Seat(s):</b> ${regData.seats.join(', ')}</p>
+      <p><b>Venue:</b> ${events[regData.eventId - 1].venue}</p>
+      <p><b>Date & Time:</b> ${new Date(events[regData.eventId - 1].time).toLocaleString()}</p>
+      <p><b>Payment Method:</b> ${regData.paymentMethod}</p>
+      <p><b>Payment Date:</b> ${regData.paymentDate}</p>
+      <p><b>Amount Paid:</b> Rs. ${totalPrice}</p>
+      <div class="ticket-footer" style="margin-top:1.1rem;">
+        Enjoy the Event!<br>Event Booking Hub
+      </div>
+    </div>`;
+  paymentPageOverlay.classList.add('active');
+}
+
+function closePaymentPage() {
+  paymentPageOverlay.classList.remove('active');
+  paymentContent.innerHTML = '';
+}
+closePaymentBtn.onclick = closePaymentPage;
+
+// Feedback form validation
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackMsg = document.getElementById('feedbackMsg');
+
+feedbackForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const formData = new FormData(feedbackForm);
+  const pId = Number(formData.get('personId'));
+  const eId = Number(formData.get('eventId'));
+  const email = formData.get('email').trim();
+  const rating = formData.get('rating');
+  const comments = formData.get('comments').trim();
+
+  if (!pId || pId < 6) {
+    feedbackMsg.textContent = 'Invalid Person ID. It must be 6 or greater.';
+    feedbackMsg.style.color = 'var(--accent)';
+    return;
+  }
+  if (!eId || eId < 1) {
+    feedbackMsg.textContent = 'Invalid Event ID.';
+    feedbackMsg.style.color = 'var(--accent)';
+    return;
+  }
+  if (!registeredEmails.includes(email)) {
+    feedbackMsg.textContent = 'You must register and attend an event to submit feedback.';
+    feedbackMsg.style.color = 'var(--accent)';
+    return;
+  }
+
+  feedbackMsg.textContent = 'Thank you for your valuable feedback!';
+  feedbackMsg.style.color = 'var(--primary)';
+  feedbackForm.reset();
+});
+</script>
+</body>
+</html>
